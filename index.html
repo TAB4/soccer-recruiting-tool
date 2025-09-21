@@ -58,12 +58,12 @@
         
         .tab.active {
             background: white;
-            color: #28a745;
-            border-bottom: 3px solid #28a745;
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
         }
         
         .tab:hover:not(.active) {
-            background: rgba(40, 167, 69, 0.1);
+            background: rgba(0, 123, 255, 0.1);
         }
         
         .tab-content {
@@ -98,7 +98,7 @@
         
         .form-control:focus {
             outline: none;
-            border-color: #28a745;
+            border-color: #007bff;
         }
         
         textarea.form-control {
@@ -107,7 +107,7 @@
         }
         
         .btn {
-            background: #28a745;
+            background: #007bff;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -121,7 +121,7 @@
         }
         
         .btn:hover {
-            background: #218838;
+            background: #0056b3;
         }
         
         .btn-secondary {
@@ -152,7 +152,7 @@
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 5px;
-            border-left: 4px solid #28a745;
+            border-left: 4px solid #007bff;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -186,7 +186,7 @@
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
-            color: #28a745;
+            color: #007bff;
         }
         
         .badge {
@@ -399,7 +399,7 @@ Best regards,
                 </div>
                 
                 <button class="btn" onclick="generateCampaign()">Generate Personalized Emails</button>
-                <button class="btn" onclick="createGmailLinks()" style="background: #db4437;">📧 Create Gmail Links</button>
+                <button class="btn" onclick="createGmailLinks()" style="background: #dc3545;">📧 Create Gmail Links</button>
                 
                 <div id="campaignOutput" style="display: none; margin-top: 20px;">
                     <!-- Generated emails will appear here -->
@@ -409,11 +409,25 @@ Best regards,
     </div>
 
     <script>
-        // Data storage
-        let coaches = JSON.parse(localStorage.getItem('soccerCoaches') || '[]');
+        // Global variable for coaches data
+        let coaches = [];
+        
+        // Load data from localStorage when page loads
+        function loadData() {
+            const stored = localStorage.getItem('soccerCoaches');
+            if (stored) {
+                coaches = JSON.parse(stored);
+            }
+        }
+        
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('soccerCoaches', JSON.stringify(coaches));
+        }
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            loadData();
             updateCoachList();
             updateStats();
         });
@@ -422,14 +436,21 @@ Best regards,
         function showTab(tabName, clickedElement) {
             // Hide all tab panes
             const panes = document.querySelectorAll('.tab-pane');
-            panes.forEach(pane => pane.classList.remove('active'));
+            panes.forEach(function(pane) {
+                pane.classList.remove('active');
+            });
             
             // Hide all tab buttons
             const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
+            tabs.forEach(function(tab) {
+                tab.classList.remove('active');
+            });
             
             // Show selected tab
-            document.getElementById(tabName).classList.add('active');
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
             
             // Show active tab button
             if (clickedElement) {
@@ -470,7 +491,7 @@ Best regards,
             };
             
             coaches.push(coach);
-            localStorage.setItem('soccerCoaches', JSON.stringify(coaches));
+            saveData();
             
             // Clear form
             document.getElementById('coachName').value = '';
@@ -484,10 +505,12 @@ Best regards,
             updateStats();
         }
         
-        // Remove coach
+        // Remove coach function
         function removeCoach(id) {
-            coaches = coaches.filter(coach => coach.id !== id);
-            localStorage.setItem('soccerCoaches', JSON.stringify(coaches));
+            coaches = coaches.filter(function(coach) {
+                return coach.id !== id;
+            });
+            saveData();
             updateCoachList();
             updateStats();
         }
@@ -501,14 +524,17 @@ Best regards,
                 return;
             }
             
-            coachItems.innerHTML = coaches.map(coach => {
+            let html = '';
+            for (let i = 0; i < coaches.length; i++) {
+                const coach = coaches[i];
                 let badges = '';
+                
                 if (coach.interestLevel) {
                     const badgeClass = 'badge-' + coach.interestLevel.toLowerCase();
                     badges = '<span class="badge ' + badgeClass + '">' + coach.interestLevel + '</span>';
                 }
                 
-                return '<div class="coach-item">' +
+                html += '<div class="coach-item">' +
                     '<div class="coach-info">' +
                     '<h4>' + coach.name + '</h4>' +
                     '<p><strong>' + coach.school + '</strong> ' + (coach.division ? '(' + coach.division + ')' : '') + '</p>' +
@@ -518,15 +544,17 @@ Best regards,
                     '</div>' +
                     '<button class="btn btn-danger" onclick="removeCoach(' + coach.id + ')">Remove</button>' +
                     '</div>';
-            }).join('');
+            }
+            
+            coachItems.innerHTML = html;
         }
         
         // Update statistics
         function updateStats() {
             const total = coaches.length;
-            const dream = coaches.filter(c => c.interestLevel === 'Dream').length;
-            const target = coaches.filter(c => c.interestLevel === 'Target').length;
-            const safety = coaches.filter(c => c.interestLevel === 'Safety').length;
+            const dream = coaches.filter(function(c) { return c.interestLevel === 'Dream'; }).length;
+            const target = coaches.filter(function(c) { return c.interestLevel === 'Target'; }).length;
+            const safety = coaches.filter(function(c) { return c.interestLevel === 'Safety'; }).length;
             
             document.getElementById('totalCoaches').textContent = total;
             document.getElementById('dreamSchools').textContent = dream;
@@ -539,12 +567,13 @@ Best regards,
             const coachSelect = document.getElementById('coachSelect');
             coachSelect.innerHTML = '<option value="">Choose a coach for preview...</option>';
             
-            coaches.forEach(coach => {
+            for (let i = 0; i < coaches.length; i++) {
+                const coach = coaches[i];
                 const option = document.createElement('option');
                 option.value = coach.id;
                 option.textContent = coach.name + ' - ' + coach.school;
                 coachSelect.appendChild(option);
-            });
+            }
         }
         
         // Insert variable into email body
@@ -578,9 +607,11 @@ Best regards,
             };
             
             if (selectedCoachId) {
-                const coach = coaches.find(c => c.id == selectedCoachId);
-                if (coach) {
-                    selectedCoach = coach;
+                for (let i = 0; i < coaches.length; i++) {
+                    if (coaches[i].id == selectedCoachId) {
+                        selectedCoach = coaches[i];
+                        break;
+                    }
                 }
             }
             
@@ -617,9 +648,11 @@ Best regards,
                 return;
             }
             
-            container.innerHTML = '<h3>Select Coaches to Email:</h3>' + 
-                coaches.map(coach => 
-                    '<div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">' +
+            let html = '<h3>Select Coaches to Email:</h3>';
+            
+            for (let i = 0; i < coaches.length; i++) {
+                const coach = coaches[i];
+                html += '<div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">' +
                     '<label style="display: flex; align-items: center; cursor: pointer;">' +
                     '<input type="checkbox" value="' + coach.id + '" style="margin-right: 10px;">' +
                     '<div>' +
@@ -627,14 +660,20 @@ Best regards,
                     coach.school + (coach.division ? ' (' + coach.division + ')' : '') +
                     '</div>' +
                     '</label>' +
-                    '</div>'
-                ).join('');
+                    '</div>';
+            }
+            
+            container.innerHTML = html;
         }
         
         // Generate email campaign
         function generateCampaign() {
-            const selectedIds = Array.from(document.querySelectorAll('#coachCheckboxes input[type="checkbox"]:checked'))
-                .map(cb => parseInt(cb.value));
+            const checkboxes = document.querySelectorAll('#coachCheckboxes input[type="checkbox"]:checked');
+            const selectedIds = [];
+            
+            for (let i = 0; i < checkboxes.length; i++) {
+                selectedIds.push(parseInt(checkboxes[i].value));
+            }
             
             if (selectedIds.length === 0) {
                 alert('Please select at least one coach.');
@@ -652,9 +691,15 @@ Best regards,
                 return;
             }
             
-            const selectedCoaches = coaches.filter(coach => selectedIds.includes(coach.id));
+            const selectedCoaches = coaches.filter(function(coach) {
+                return selectedIds.includes(coach.id);
+            });
             
-            const emailsHtml = selectedCoaches.map((coach, index) => {
+            let emailsHtml = '';
+            
+            for (let i = 0; i < selectedCoaches.length; i++) {
+                const coach = selectedCoaches[i];
+                
                 const personalizedSubject = subject
                     .replace(/\{\{PlayerName\}\}/g, playerName)
                     .replace(/\{\{CoachName\}\}/g, coach.name)
@@ -669,41 +714,54 @@ Best regards,
                     .replace(/\{\{GradYear\}\}/g, gradYear)
                     .replace(/\{\{Position\}\}/g, position);
                 
-                return '<div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">' +
-                    '<h4>Email ' + (index + 1) + ' - ' + coach.name + '</h4>' +
+                emailsHtml += '<div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">' +
+                    '<h4>Email ' + (i + 1) + ' - ' + coach.name + '</h4>' +
                     '<p><strong>To:</strong> ' + coach.name + ' &lt;' + coach.email + '&gt;</p>' +
                     '<p><strong>Subject:</strong> ' + personalizedSubject + '</p>' +
                     '<div style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px; white-space: pre-wrap;">' + personalizedBody + '</div>' +
                     '<button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyEmailText(\'' + coach.email + '\', \'' + personalizedSubject.replace(/'/g, "\\'") + '\', \'' + personalizedBody.replace(/'/g, "\\'").replace(/\n/g, '\\n') + '\')">Copy Email</button>' +
                     '</div>';
-            }).join('');
+            }
             
             document.getElementById('campaignOutput').innerHTML = 
                 '<h3>Generated Campaign (' + selectedCoaches.length + ' emails)</h3>' + emailsHtml;
             document.getElementById('campaignOutput').style.display = 'block';
         }
         
-        // Copy email text
+        // Copy email text to clipboard
         function copyEmailText(email, subject, body) {
             const emailText = 'To: ' + email + '\nSubject: ' + subject + '\n\n' + body;
             
-            navigator.clipboard.writeText(emailText).then(() => {
-                alert('Email copied to clipboard!');
-            }).catch(() => {
-                const textArea = document.createElement('textarea');
-                textArea.value = emailText;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('Email copied to clipboard!');
-            });
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(emailText).then(function() {
+                    alert('Email copied to clipboard!');
+                }).catch(function() {
+                    fallbackCopy(emailText);
+                });
+            } else {
+                fallbackCopy(emailText);
+            }
         }
         
-        // Create Gmail links
+        // Fallback copy method
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Email copied to clipboard!');
+        }
+        
+        // Create Gmail links with specific account
         function createGmailLinks() {
-            const selectedIds = Array.from(document.querySelectorAll('#coachCheckboxes input[type="checkbox"]:checked'))
-                .map(cb => parseInt(cb.value));
+            const checkboxes = document.querySelectorAll('#coachCheckboxes input[type="checkbox"]:checked');
+            const selectedIds = [];
+            
+            for (let i = 0; i < checkboxes.length; i++) {
+                selectedIds.push(parseInt(checkboxes[i].value));
+            }
             
             if (selectedIds.length === 0) {
                 alert('Please select at least one coach.');
@@ -721,13 +779,19 @@ Best regards,
                 return;
             }
             
-            const selectedCoaches = coaches.filter(coach => selectedIds.includes(coach.id));
+            const selectedCoaches = coaches.filter(function(coach) {
+                return selectedIds.includes(coach.id);
+            });
             
-            const linksHtml = selectedCoaches.map((coach, index) => {
+            let linksHtml = '';
+            
+            for (let i = 0; i < selectedCoaches.length; i++) {
+                const coach = selectedCoaches[i];
+                
                 const personalizedSubject = subject
                     .replace(/\{\{PlayerName\}\}/g, playerName)
                     .replace(/\{\{CoachName\}\}/g, coach.name)
-                    .replace(/\{\{SchoolName\}\}/g, coach.school)
+                    .replace(/\school)
                     .replace(/\{\{GradYear\}\}/g, gradYear)
                     .replace(/\{\{Position\}\}/g, position);
                 
@@ -738,23 +802,24 @@ Best regards,
                     .replace(/\{\{GradYear\}\}/g, gradYear)
                     .replace(/\{\{Position\}\}/g, position);
                 
-                const gmailUrl = 'https://mail.google.com/mail/u/jbbranch410@gmail.com/?view=cm'
+                // Gmail URL with specific account
+                const gmailUrl = 'https://mail.google.com/mail/u/jbbranch410@gmail.com/?view=cm&fs=1&to=' + 
                     encodeURIComponent(coach.email) + '&su=' + 
                     encodeURIComponent(personalizedSubject) + '&body=' + 
                     encodeURIComponent(personalizedBody);
                 
-                return '<div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #db4437;">' +
+                linksHtml += '<div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #dc3545;">' +
                     '<h4>' + coach.name + ' - ' + coach.school + '</h4>' +
                     '<p><strong>Email:</strong> ' + coach.email + '</p>' +
                     '<p><strong>Subject:</strong> ' + personalizedSubject + '</p>' +
-                    '<a href="' + gmailUrl + '" target="_blank" class="btn" style="background: #db4437; color: white;">📧 Open Gmail for ' + coach.name + '</a>' +
+                    '<a href="' + gmailUrl + '" target="_blank" class="btn" style="background: #dc3545; color: white;">📧 Open Gmail for ' + coach.name + '</a>' +
                     '</div>';
-            }).join('');
+            }
             
             document.getElementById('campaignOutput').innerHTML = 
                 '<h3>Gmail Links Generated (' + selectedCoaches.length + ' emails)</h3>' +
                 '<p style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-bottom: 20px;">' +
-                '<strong>Instructions:</strong> Click each link below to open Gmail with the personalized email ready to send. Each link opens in a new tab.' +
+                '<strong>Instructions:</strong> These links will open Gmail using jbbranch410@gmail.com. Make sure you are logged into that account first!' +
                 '</p>' +
                 linksHtml;
             document.getElementById('campaignOutput').style.display = 'block';
@@ -767,12 +832,13 @@ Best regards,
                 return;
             }
             
-            const csvContent = [
-                'Name,Email,School,Division,Interest Level,Notes',
-                ...coaches.map(coach => 
-                    '"' + coach.name + '","' + coach.email + '","' + coach.school + '","' + (coach.division || '') + '","' + (coach.interestLevel || '') + '","' + (coach.notes || '') + '"'
-                )
-            ].join('\n');
+            let csvContent = 'Name,Email,School,Division,Interest Level,Notes\n';
+            
+            for (let i = 0; i < coaches.length; i++) {
+                const coach = coaches[i];
+                csvContent += '"' + coach.name + '","' + coach.email + '","' + coach.school + '","' + 
+                    (coach.division || '') + '","' + (coach.interestLevel || '') + '","' + (coach.notes || '') + '"\n';
+            }
             
             const blob = new Blob([csvContent], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
