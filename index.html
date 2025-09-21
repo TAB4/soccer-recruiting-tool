@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Recruiting Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            font-size: 1rem;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #28a745;
+            border-bottom: 3px solid #28a745;
+        }
+        
+        .tab:hover:not(.active) {
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .tab-content {
+            padding: 40px;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .coach-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .coach-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .coach-info h4 {
+            margin-bottom: 5px;
+        }
+        
+        .coach-info p {
+            margin: 2px 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-right: 5px;
+            color: white;
+        }
+        
+        .badge-dream { background: #dc3545; }
+        .badge-target { background: #28a745; }
+        .badge-safety { background: #007bff; }
+        .badge-exploring { background: #6c757d; }
+        
+        .variable-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin: 2px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .variable-tag:hover {
+            background: #bbdefb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚽ Soccer Recruiting Tool</h1>
+            <p>Organize your college recruiting process</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('coaches', this)">Coach Database</button>
+            <button class="tab" onclick="showTab('compose', this)">Compose Email</button>
+            <button class="tab" onclick="showTab('send', this)">Send Campaign</button>
+        </div>
+        
+        <div class="tab-content">
+            <!-- Coach Database Tab -->
+            <div id="coaches" class="tab-pane active">
+                <h2>Coach Database Management</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalCoaches">0</div>
+                        <div>Total Programs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="dreamSchools">0</div>
+                        <div>Dream Schools</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="targetSchools">0</div>
+                        <div>Target Schools</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="safetySchools">0</div>
+                        <div>Safety Schools</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Coach Name</label>
+                    <input type="text" id="coachName" class="form-control" placeholder="e.g., Sarah Johnson">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="coachEmail" class="form-control" placeholder="e.g., s.johnson@university.edu">
+                </div>
+                
+                <div class="form-group">
+                    <label>School Name</label>
+                    <input type="text" id="schoolName" class="form-control" placeholder="e.g., University of California">
+                </div>
+                
+                <div class="form-group">
+                    <label>Division</label>
+                    <select id="division" class="form-control">
+                        <option value="">Select Division</option>
+                        <option value="D1">Division 1</option>
+                        <option value="D2">Division 2</option>
+                        <option value="D3">Division 3</option>
+                        <option value="NAIA">NAIA</option>
+                        <option value="JUCO">Junior College</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Interest Level</label>
+                    <select id="interestLevel" class="form-control">
+                        <option value="">Select Interest Level</option>
+                        <option value="Dream">Dream School</option>
+                        <option value="Target">Target School</option>
+                        <option value="Safety">Safety School</option>
+                        <option value="Exploring">Still Exploring</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="coachNotes" class="form-control" placeholder="Any notes about the program..."></textarea>
+                </div>
+                
+                <button class="btn" onclick="addCoach()">Add Coach</button>
+                <button class="btn btn-secondary" onclick="exportCoaches()">Export CSV</button>
+                
+                <div class="coach-list">
+                    <h3>Your Coach Database</h3>
+                    <div id="coachItems">
+                        <p style="color: #666; font-style: italic;">No coaches added yet. Add your first coach above!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compose Email Tab -->
+            <div id="compose" class="tab-pane">
+                <h2>Compose Recruiting Email</h2>
+                
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <p><strong>💡 Tip:</strong> Add coaches to your database first, then select them below for personalized emails.</p>
+                    <button class="btn btn-secondary" onclick="showTab('coaches', null)" style="margin-top: 10px;">← Go to Coach Database</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Select Coach (for preview)</label>
+                    <select id="coachSelect" class="form-control" onchange="updateEmailPreview()">
+                        <option value="">Choose a coach for preview...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="playerName" class="form-control" placeholder="e.g., Emma Rodriguez" onchange="updateEmailPreview()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Graduation Year</label>
+                    <input type="text" id="gradYear" class="form-control" placeholder="e.g., 2025" onchange="updateEmailPreview()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Position</label>
+                    <input type="text" id="position" class="form-control" placeholder="e.g., Midfielder" onchange="updateEmailPreview()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Subject Line</label>
+                    <input type="text" id="emailSubject" class="form-control" value="{{PlayerName}} - Class of {{GradYear}} Soccer Recruit" onchange="updateEmailPreview()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email Message</label>
+                    <textarea id="emailBody" class="form-control" style="min-height: 300px;" onchange="updateEmailPreview()">Dear Coach {{CoachName}},
+
+I hope this email finds you well. My name is {{PlayerName}}, and I am a {{Position}} in the Class of {{GradYear}}. I am very interested in {{SchoolName}} and would love to learn more about your women's soccer program.
+
+I have been playing competitive soccer for several years and believe I would be a great fit for your team. My achievements include:
+- [Add your soccer achievements here]
+- [Academic accomplishments]
+- [Leadership experience]
+
+I would welcome the opportunity to discuss how I might contribute to {{SchoolName}}'s women's soccer program. I have attached my soccer resume and highlight video for your review.
+
+Thank you for your time and consideration.
+
+Best regards,
+{{PlayerName}}
+[Your Phone Number]
+[Your Email Address]</textarea>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <strong>Click to insert:</strong>
+                    <span class="variable-tag" onclick="insertVariable('{{PlayerName}}')">{{PlayerName}}</span>
+                    <span class="variable-tag" onclick="insertVariable('{{CoachName}}')">{{CoachName}}</span>
+                    <span class="variable-tag" onclick="insertVariable('{{SchoolName}}')">{{SchoolName}}</span>
+                    <span class="variable-tag" onclick="insertVariable('{{GradYear}}')">{{GradYear}}</span>
+                    <span class="variable-tag" onclick="insertVariable('{{Position}}')">{{Position}}</span>
+                </div>
+                
+                <div id="emailPreview" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+                    <h3>Live Email Preview</h3>
+                    <div style="border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 15px;">
+                        <p><strong>Subject:</strong> <span id="previewSubject">Enter subject above to see preview</span></p>
+                        <p><strong>To:</strong> <span id="previewCoach">Select a coach to see personalized preview</span></p>
+                    </div>
+                    <div id="previewBody" style="white-space: pre-wrap; background: white; padding: 15px; border-radius: 5px;">Enter your message above to see preview</div>
+                </div>
+            </div>
+            
+            <!-- Send Campaign Tab -->
+            <div id="send" class="tab-pane">
+                <h2>Generate Email Campaign</h2>
+                
+                <p style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <strong>Note:</strong> This generates personalized emails that you can send through Gmail.
+                </p>
+                
+                <div id="coachCheckboxes" style="margin-bottom: 20px;">
+                    <!-- Coach checkboxes will be populated here -->
+                </div>
+                
+                <button class="btn" onclick="generateCampaign()">Generate Personalized Emails</button>
+                <button class="btn" onclick="createGmailLinks()" style="background: #db4437;">📧 Create Gmail Links</button>
+                
+                <div id="campaignOutput" style="display: none; margin-top: 20px;">
+                    <!-- Generated emails will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let coaches = JSON.parse(localStorage.getItem('soccerCoaches') || '[]');
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCoachList();
+            updateStats();
+        });
+        
+        // Tab switching function
+        function showTab(tabName, clickedElement) {
+            // Hide all tab panes
+            const panes = document.querySelectorAll('.tab-pane');
+            panes.forEach(pane => pane.classList.remove('active'));
+            
+            // Hide all tab buttons
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Show active tab button
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            }
+            
+            // Special actions for specific tabs
+            if (tabName === 'send') {
+                populateCoachCheckboxes();
+            } else if (tabName === 'compose') {
+                populateCoachDropdown();
+                updateEmailPreview();
+            }
+        }
+        
+        // Add coach function
+        function addCoach() {
+            const name = document.getElementById('coachName').value.trim();
+            const email = document.getElementById('coachEmail').value.trim();
+            const school = document.getElementById('schoolName').value.trim();
+            const division = document.getElementById('division').value;
+            const interestLevel = document.getElementById('interestLevel').value;
+            const notes = document.getElementById('coachNotes').value.trim();
+            
+            if (!name || !email || !school) {
+                alert('Please fill in coach name, email, and school name.');
+                return;
+            }
+            
+            const coach = {
+                id: Date.now(),
+                name: name,
+                email: email,
+                school: school,
+                division: division,
+                interestLevel: interestLevel,
+                notes: notes
+            };
+            
+            coaches.push(coach);
+            localStorage.setItem('soccerCoaches', JSON.stringify(coaches));
+            
+            // Clear form
+            document.getElementById('coachName').value = '';
+            document.getElementById('coachEmail').value = '';
+            document.getElementById('schoolName').value = '';
+            document.getElementById('division').value = '';
+            document.getElementById('interestLevel').value = '';
+            document.getElementById('coachNotes').value = '';
+            
+            updateCoachList();
+            updateStats();
+        }
+        
+        // Remove coach
+        function removeCoach(id) {
+            coaches = coaches.filter(coach => coach.id !== id);
+            localStorage.setItem('soccerCoaches', JSON.stringify(coaches));
+            updateCoachList();
+            updateStats();
+        }
+        
+        // Update coach list display
+        function updateCoachList() {
+            const coachItems = document.getElementById('coachItems');
+            
+            if (coaches.length === 0) {
+                coachItems.innerHTML = '<p style="color: #666; font-style: italic;">No coaches added yet.</p>';
+                return;
+            }
+            
+            coachItems.innerHTML = coaches.map(coach => {
+                let badges = '';
+                if (coach.interestLevel) {
+                    const badgeClass = 'badge-' + coach.interestLevel.toLowerCase();
+                    badges = '<span class="badge ' + badgeClass + '">' + coach.interestLevel + '</span>';
+                }
+                
+                return '<div class="coach-item">' +
+                    '<div class="coach-info">' +
+                    '<h4>' + coach.name + '</h4>' +
+                    '<p><strong>' + coach.school + '</strong> ' + (coach.division ? '(' + coach.division + ')' : '') + '</p>' +
+                    '<p>Email: ' + coach.email + '</p>' +
+                    '<div style="margin: 5px 0;">' + badges + '</div>' +
+                    (coach.notes ? '<p><em>' + coach.notes + '</em></p>' : '') +
+                    '</div>' +
+                    '<button class="btn btn-danger" onclick="removeCoach(' + coach.id + ')">Remove</button>' +
+                    '</div>';
+            }).join('');
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const total = coaches.length;
+            const dream = coaches.filter(c => c.interestLevel === 'Dream').length;
+            const target = coaches.filter(c => c.interestLevel === 'Target').length;
+            const safety = coaches.filter(c => c.interestLevel === 'Safety').length;
+            
+            document.getElementById('totalCoaches').textContent = total;
+            document.getElementById('dreamSchools').textContent = dream;
+            document.getElementById('targetSchools').textContent = target;
+            document.getElementById('safetySchools').textContent = safety;
+        }
+        
+        // Populate coach dropdown
+        function populateCoachDropdown() {
+            const coachSelect = document.getElementById('coachSelect');
+            coachSelect.innerHTML = '<option value="">Choose a coach for preview...</option>';
+            
+            coaches.forEach(coach => {
+                const option = document.createElement('option');
+                option.value = coach.id;
+                option.textContent = coach.name + ' - ' + coach.school;
+                coachSelect.appendChild(option);
+            });
+        }
+        
+        // Insert variable into email body
+        function insertVariable(variable) {
+            const emailBody = document.getElementById('emailBody');
+            const start = emailBody.selectionStart;
+            const end = emailBody.selectionEnd;
+            const text = emailBody.value;
+            
+            emailBody.value = text.substring(0, start) + variable + text.substring(end);
+            emailBody.focus();
+            emailBody.setSelectionRange(start + variable.length, start + variable.length);
+            
+            updateEmailPreview();
+        }
+        
+        // Update email preview
+        function updateEmailPreview() {
+            const subject = document.getElementById('emailSubject').value;
+            const playerName = document.getElementById('playerName').value || '[Your Name]';
+            const gradYear = document.getElementById('gradYear').value || '[Grad Year]';
+            const position = document.getElementById('position').value || '[Position]';
+            const body = document.getElementById('emailBody').value;
+            const selectedCoachId = document.getElementById('coachSelect').value;
+            
+            // Get selected coach or use sample data
+            let selectedCoach = {
+                name: '[Coach Name]',
+                school: '[School Name]',
+                email: '[coach@email.com]'
+            };
+            
+            if (selectedCoachId) {
+                const coach = coaches.find(c => c.id == selectedCoachId);
+                if (coach) {
+                    selectedCoach = coach;
+                }
+            }
+            
+            // Replace variables in subject
+            let previewSubject = subject
+                .replace(/\{\{PlayerName\}\}/g, playerName)
+                .replace(/\{\{CoachName\}\}/g, selectedCoach.name)
+                .replace(/\{\{SchoolName\}\}/g, selectedCoach.school)
+                .replace(/\{\{GradYear\}\}/g, gradYear)
+                .replace(/\{\{Position\}\}/g, position);
+            
+            // Replace variables in body
+            let previewBody = body
+                .replace(/\{\{PlayerName\}\}/g, playerName)
+                .replace(/\{\{CoachName\}\}/g, selectedCoach.name)
+                .replace(/\{\{SchoolName\}\}/g, selectedCoach.school)
+                .replace(/\{\{GradYear\}\}/g, gradYear)
+                .replace(/\{\{Position\}\}/g, position);
+            
+            // Update preview display
+            document.getElementById('previewSubject').textContent = previewSubject || 'Enter subject above to see preview';
+            document.getElementById('previewCoach').textContent = selectedCoachId ? 
+                selectedCoach.name + ' <' + selectedCoach.email + '>' : 
+                'Select a coach to see personalized preview';
+            document.getElementById('previewBody').textContent = previewBody || 'Enter your message above to see preview';
+        }
+        
+        // Populate checkboxes for campaign
+        function populateCoachCheckboxes() {
+            const container = document.getElementById('coachCheckboxes');
+            
+            if (coaches.length === 0) {
+                container.innerHTML = '<p>No coaches in database. Add coaches first!</p>';
+                return;
+            }
+            
+            container.innerHTML = '<h3>Select Coaches to Email:</h3>' + 
+                coaches.map(coach => 
+                    '<div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">' +
+                    '<label style="display: flex; align-items: center; cursor: pointer;">' +
+                    '<input type="checkbox" value="' + coach.id + '" style="margin-right: 10px;">' +
+                    '<div>' +
+                    '<strong>' + coach.name + '</strong><br>' +
+                    coach.school + (coach.division ? ' (' + coach.division + ')' : '') +
+                    '</div>' +
+                    '</label>' +
+                    '</div>'
+                ).join('');
+        }
+        
+        // Generate email campaign
+        function generateCampaign() {
+            const selectedIds = Array.from(document.querySelectorAll('#coachCheckboxes input[type="checkbox"]:checked'))
+                .map(cb => parseInt(cb.value));
+            
+            if (selectedIds.length === 0) {
+                alert('Please select at least one coach.');
+                return;
+            }
+            
+            const subject = document.getElementById('emailSubject').value;
+            const playerName = document.getElementById('playerName').value || '[Player Name]';
+            const gradYear = document.getElementById('gradYear').value || '[Grad Year]';
+            const position = document.getElementById('position').value || '[Position]';
+            const bodyTemplate = document.getElementById('emailBody').value;
+            
+            if (!subject || !bodyTemplate) {
+                alert('Please compose your email first.');
+                return;
+            }
+            
+            const selectedCoaches = coaches.filter(coach => selectedIds.includes(coach.id));
+            
+            const emailsHtml = selectedCoaches.map((coach, index) => {
+                const personalizedSubject = subject
+                    .replace(/\{\{PlayerName\}\}/g, playerName)
+                    .replace(/\{\{CoachName\}\}/g, coach.name)
+                    .replace(/\{\{SchoolName\}\}/g, coach.school)
+                    .replace(/\{\{GradYear\}\}/g, gradYear)
+                    .replace(/\{\{Position\}\}/g, position);
+                
+                const personalizedBody = bodyTemplate
+                    .replace(/\{\{PlayerName\}\}/g, playerName)
+                    .replace(/\{\{CoachName\}\}/g, coach.name)
+                    .replace(/\{\{SchoolName\}\}/g, coach.school)
+                    .replace(/\{\{GradYear\}\}/g, gradYear)
+                    .replace(/\{\{Position\}\}/g, position);
+                
+                return '<div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">' +
+                    '<h4>Email ' + (index + 1) + ' - ' + coach.name + '</h4>' +
+                    '<p><strong>To:</strong> ' + coach.name + ' &lt;' + coach.email + '&gt;</p>' +
+                    '<p><strong>Subject:</strong> ' + personalizedSubject + '</p>' +
+                    '<div style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px; white-space: pre-wrap;">' + personalizedBody + '</div>' +
+                    '<button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyEmailText(\'' + coach.email + '\', \'' + personalizedSubject.replace(/'/g, "\\'") + '\', \'' + personalizedBody.replace(/'/g, "\\'").replace(/\n/g, '\\n') + '\')">Copy Email</button>' +
+                    '</div>';
+            }).join('');
+            
+            document.getElementById('campaignOutput').innerHTML = 
+                '<h3>Generated Campaign (' + selectedCoaches.length + ' emails)</h3>' + emailsHtml;
+            document.getElementById('campaignOutput').style.display = 'block';
+        }
+        
+        // Copy email text
+        function copyEmailText(email, subject, body) {
+            const emailText = 'To: ' + email + '\nSubject: ' + subject + '\n\n' + body;
+            
+            navigator.clipboard.writeText(emailText).then(() => {
+                alert('Email copied to clipboard!');
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = emailText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Email copied to clipboard!');
+            });
+        }
+        
+        // Create Gmail links
+        function createGmailLinks() {
+            const selectedIds = Array.from(document.querySelectorAll('#coachCheckboxes input[type="checkbox"]:checked'))
+                .map(cb => parseInt(cb.value));
+            
+            if (selectedIds.length === 0) {
+                alert('Please select at least one coach.');
+                return;
+            }
+            
+            const subject = document.getElementById('emailSubject').value;
+            const playerName = document.getElementById('playerName').value || '[Player Name]';
+            const gradYear = document.getElementById('gradYear').value || '[Grad Year]';
+            const position = document.getElementById('position').value || '[Position]';
+            const bodyTemplate = document.getElementById('emailBody').value;
+            
+            if (!subject || !bodyTemplate) {
+                alert('Please compose your email first.');
+                return;
+            }
+            
+            const selectedCoaches = coaches.filter(coach => selectedIds.includes(coach.id));
+            
+            const linksHtml = selectedCoaches.map((coach, index) => {
+                const personalizedSubject = subject
+                    .replace(/\{\{PlayerName\}\}/g, playerName)
+                    .replace(/\{\{CoachName\}\}/g, coach.name)
+                    .replace(/\{\{SchoolName\}\}/g, coach.school)
+                    .replace(/\{\{GradYear\}\}/g, gradYear)
+                    .replace(/\{\{Position\}\}/g, position);
+                
+                const personalizedBody = bodyTemplate
+                    .replace(/\{\{PlayerName\}\}/g, playerName)
+                    .replace(/\{\{CoachName\}\}/g, coach.name)
+                    .replace(/\{\{SchoolName\}\}/g, coach.school)
+                    .replace(/\{\{GradYear\}\}/g, gradYear)
+                    .replace(/\{\{Position\}\}/g, position);
+                
+                const gmailUrl = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + 
+                    encodeURIComponent(coach.email) + '&su=' + 
+                    encodeURIComponent(personalizedSubject) + '&body=' + 
+                    encodeURIComponent(personalizedBody);
+                
+                return '<div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #db4437;">' +
+                    '<h4>' + coach.name + ' - ' + coach.school + '</h4>' +
+                    '<p><strong>Email:</strong> ' + coach.email + '</p>' +
+                    '<p><strong>Subject:</strong> ' + personalizedSubject + '</p>' +
+                    '<a href="' + gmailUrl + '" target="_blank" class="btn" style="background: #db4437; color: white;">📧 Open Gmail for ' + coach.name + '</a>' +
+                    '</div>';
+            }).join('');
+            
+            document.getElementById('campaignOutput').innerHTML = 
+                '<h3>Gmail Links Generated (' + selectedCoaches.length + ' emails)</h3>' +
+                '<p style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-bottom: 20px;">' +
+                '<strong>Instructions:</strong> Click each link below to open Gmail with the personalized email ready to send. Each link opens in a new tab.' +
+                '</p>' +
+                linksHtml;
+            document.getElementById('campaignOutput').style.display = 'block';
+        }
+        
+        // Export coaches to CSV
+        function exportCoaches() {
+            if (coaches.length === 0) {
+                alert('No coaches to export!');
+                return;
+            }
+            
+            const csvContent = [
+                'Name,Email,School,Division,Interest Level,Notes',
+                ...coaches.map(coach => 
+                    '"' + coach.name + '","' + coach.email + '","' + coach.school + '","' + (coach.division || '') + '","' + (coach.interestLevel || '') + '","' + (coach.notes || '') + '"'
+                )
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'soccer_coaches.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
