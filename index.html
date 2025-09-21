@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -300,6 +301,7 @@
                 </div>
                 
                 <button class="btn" onclick="addCoach()">Add Coach</button>
+                <button class="btn btn-secondary" onclick="importCoaches()">Import CSV</button>
                 <button class="btn btn-secondary" onclick="exportCoaches()">Export CSV</button>
                 
                 <div class="coach-list">
@@ -791,7 +793,7 @@ Best regards,
                 const personalizedSubject = subject
                     .replace(/\{\{PlayerName\}\}/g, playerName)
                     .replace(/\{\{CoachName\}\}/g, coach.name)
-                    .replace(/\school)
+                    .replace(/\{\{SchoolName\}\}/g, coach.school)
                     .replace(/\{\{GradYear\}\}/g, gradYear)
                     .replace(/\{\{Position\}\}/g, position);
                 
@@ -823,6 +825,73 @@ Best regards,
                 '</p>' +
                 linksHtml;
             document.getElementById('campaignOutput').style.display = 'block';
+        }
+        
+        // Import coaches from CSV
+        function importCoaches() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csv = e.target.result;
+                    const lines = csv.split('\n');
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                    
+                    let imported = 0;
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        const values = [];
+                        let current = '';
+                        let inQuotes = false;
+                        
+                        for (let j = 0; j < line.length; j++) {
+                            const char = line[j];
+                            if (char === '"') {
+                                inQuotes = !inQuotes;
+                            } else if (char === ',' && !inQuotes) {
+                                values.push(current.trim().replace(/"/g, ''));
+                                current = '';
+                            } else {
+                                current += char;
+                            }
+                        }
+                        values.push(current.trim().replace(/"/g, ''));
+                        
+                        if (values.length < 3) continue;
+                        
+                        const coach = {
+                            id: Date.now() + imported,
+                            name: values[headers.indexOf('name')] || values[0] || '',
+                            email: values[headers.indexOf('email')] || values[1] || '',
+                            school: values[headers.indexOf('school')] || values[2] || '',
+                            division: values[headers.indexOf('division')] || values[3] || '',
+                            interestLevel: values[headers.indexOf('interest level')] || values[5] || '',
+                            notes: values[headers.indexOf('notes')] || values[9] || ''
+                        };
+                        
+                        if (coach.name && coach.email && coach.school) {
+                            coaches.push(coach);
+                            imported++;
+                        }
+                    }
+                    
+                    saveData();
+                    updateCoachList();
+                    updateStats();
+                    alert('Successfully imported ' + imported + ' coaches!');
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
         }
         
         // Export coaches to CSV
