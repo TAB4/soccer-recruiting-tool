@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -329,6 +328,17 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>Email Template</label>
+                    <select id="templateSelect" class="form-control" onchange="loadTemplate()">
+                        <option value="">Choose a template...</option>
+                        <option value="initial">Template 1: Initial Introduction</option>
+                        <option value="followup">Template 2: Follow-up Email</option>
+                        <option value="showcase">Template 3: Tournament/Showcase Invitation</option>
+                        <option value="custom">Custom (Write Your Own)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
                     <label>Your Name</label>
                     <input type="text" id="playerName" class="form-control" placeholder="e.g., Emma Rodriguez" onchange="updateEmailPreview()">
                 </div>
@@ -564,7 +574,120 @@ Best regards,
             document.getElementById('safetySchools').textContent = safety;
         }
         
-        // Populate coach dropdown
+        // Email templates
+        const emailTemplates = {
+            initial: {
+                subject: "{{PlayerName}} - Class of {{GradYear}} Women's Soccer Recruit",
+                body: `Dear Coach {{CoachName}},
+
+I hope this email finds you well. My name is {{PlayerName}}, and I am a {{Position}} in the Class of {{GradYear}}. After researching {{SchoolName}}'s women's soccer program, I am very interested in learning more about your team and how I might contribute.
+
+Here's a brief overview of my background:
+• Current GPA: 3.7
+• SAT/ACT: [Your test scores]
+• Club Team: Walnut Creek Surf ECNL-RL
+• Position: {{Position}}
+• Years of competitive experience: [X years]
+
+Recent achievements that demonstrate my potential:
+• [Specific achievement - tournament win, award, etc.]
+• [Academic honor or leadership role]
+• [Soccer skill highlight - goals, assists, defensive stats]
+
+What draws me to {{SchoolName}}:
+• [Specific reason about their program/style of play]
+• [Academic program that interests you]
+• [Campus culture/location appeal]
+
+I would welcome the opportunity to discuss how my skills, work ethic, and character might contribute to {{SchoolName}}'s continued success. I have attached my soccer resume and would be happy to provide game film upon request.
+
+Thank you for your time and consideration. I look forward to hearing from you.
+
+Best regards,
+{{PlayerName}}
+[Your phone number]
+[Your email address]`
+            },
+            followup: {
+                subject: "Following up - {{PlayerName}}, Class of {{GradYear}}",
+                body: `Dear Coach {{CoachName}},
+
+I hope your season is going well! I wanted to follow up on my email from [X weeks ago] regarding my interest in {{SchoolName}}'s women's soccer program.
+
+Since my last correspondence, I have:
+• [Recent game/tournament performance]
+• [New achievement or development]
+• [Academic update if relevant]
+
+I remain very interested in {{SchoolName}} and would love the opportunity to connect with you about your program. I understand you receive many recruiting emails, but I believe my combination of [specific skill/trait] and [academic strength/character trait] would make me a valuable addition to your team.
+
+Upcoming opportunities to see me play:
+• [Tournament/game name and date]
+• [Location and team: Walnut Creek Surf ECNL-RL]
+• [Game times if known]
+
+I would be thrilled to have you or a member of your staff attend if your schedule permits. If these dates don't work, I'm happy to provide recent game film.
+
+Thank you again for your time. I hope to hear from you soon.
+
+Best regards,
+{{PlayerName}}
+[Your phone number]
+[Your email address]`
+            },
+            showcase: {
+                subject: "{{PlayerName}} playing at [Tournament Name] - Class of {{GradYear}}",
+                body: `Dear Coach {{CoachName}},
+
+I hope you're having a successful season! I wanted to reach out to let you know that I'll be competing at [Tournament Name] and would love to have you come watch me play.
+
+Event Details:
+• Tournament: [Tournament Name]
+• Dates: [Tournament dates]
+• Location: [City, State]
+• My team: Walnut Creek Surf ECNL-RL
+• Anticipated game times: [List times if known]
+
+This tournament features top competition from [region/level], and I'm excited to showcase the skills that I believe would translate well to {{SchoolName}}'s style of play. As a {{Position}}, I've been working specifically on [skill area] and feel this tournament will be a great opportunity to demonstrate my development.
+
+About my interest in {{SchoolName}}:
+• [Specific aspect of their program that appeals to you]
+• [Academic program connection]
+• [How you'd fit their team culture/playing style]
+
+Recent highlights:
+• [Statistical achievement from recent games]
+• [Team accomplishment you contributed to]
+
+If you're able to attend, I'll make sure to introduce myself after our games. If the timing doesn't work with your schedule, I'd be happy to send recent game film or schedule a phone call at your convenience.
+
+Thank you for your time, and I hope to see you at [Tournament Name]!
+
+Best regards,
+{{PlayerName}}
+[Your phone number]
+[Your email address]
+Jersey #: [Your number]`
+            }
+        };
+        
+        // Load selected template
+        function loadTemplate() {
+            const templateSelect = document.getElementById('templateSelect');
+            const selectedTemplate = templateSelect.value;
+            
+            if (selectedTemplate && emailTemplates[selectedTemplate]) {
+                const template = emailTemplates[selectedTemplate];
+                document.getElementById('emailSubject').value = template.subject;
+                document.getElementById('emailBody').value = template.body;
+                updateEmailPreview();
+            } else if (selectedTemplate === 'custom') {
+                // Clear for custom template
+                document.getElementById('emailSubject').value = '';
+                document.getElementById('emailBody').value = '';
+                updateEmailPreview();
+            }
+        }
         function populateCoachDropdown() {
             const coachSelect = document.getElementById('coachSelect');
             coachSelect.innerHTML = '<option value="">Choose a coach for preview...</option>';
