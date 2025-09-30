@@ -243,17 +243,29 @@
                         <div>Total Programs</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="dreamSchools">0</div>
-                        <div>Dream Schools</div>
+                        <div class="stat-number" id="emailsSent">0</div>
+                        <div>Emails Sent</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="targetSchools">0</div>
-                        <div>Target Schools</div>
+                        <div class="stat-number" id="responsesReceived">0</div>
+                        <div>Responses</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="safetySchools">0</div>
-                        <div>Safety Schools</div>
+                        <div class="stat-number" id="responseRate">0%</div>
+                        <div>Response Rate</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="followupsNeeded">0</div>
+                        <div>Follow-ups Needed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="meetingsScheduled">0</div>
+                        <div>Meetings Scheduled</div>
+                    </div>
+                </div>
+                
+                <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #ffc107;" id="followupAlert" style="display: none;">
+                    <strong>⚠️ Follow-ups Needed:</strong> You have <span id="overdueCount">0</span> coaches that need follow-up!
                 </div>
                 
                 <div class="form-group">
@@ -295,8 +307,37 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>Response Status</label>
+                    <select id="responseStatus" class="form-control">
+                        <option value="">Select Status</option>
+                        <option value="Not Contacted">Not Contacted Yet</option>
+                        <option value="Email Sent">Email Sent - Awaiting Response</option>
+                        <option value="Responded">Coach Responded</option>
+                        <option value="Follow-up Needed">Follow-up Needed</option>
+                        <option value="Meeting Scheduled">Meeting/Visit Scheduled</option>
+                        <option value="No Interest">Not Interested</option>
+                        <option value="Offer Received">Offer Received</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Last Contact Date</label>
+                    <input type="date" id="lastContactDate" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label>Next Follow-up Date</label>
+                    <input type="date" id="nextFollowupDate" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label>Number of Contacts</label>
+                    <input type="number" id="contactCount" class="form-control" value="0" min="0">
+                </div>
+                
+                <div class="form-group">
                     <label>Notes</label>
-                    <textarea id="coachNotes" class="form-control" placeholder="Any notes about the program..."></textarea>
+                    <textarea id="coachNotes" class="form-control" placeholder="Track responses, conversations, and important details..."></textarea>
                 </div>
                 
                 <button class="btn" onclick="addCoach()">Add Coach</button>
@@ -499,6 +540,10 @@ Best regards,
                 school: school,
                 division: division,
                 interestLevel: interestLevel,
+                responseStatus: document.getElementById('responseStatus').value,
+                lastContactDate: document.getElementById('lastContactDate').value,
+                nextFollowupDate: document.getElementById('nextFollowupDate').value,
+                contactCount: parseInt(document.getElementById('contactCount').value) || 0,
                 notes: notes
             };
             
@@ -511,6 +556,10 @@ Best regards,
             document.getElementById('schoolName').value = '';
             document.getElementById('division').value = '';
             document.getElementById('interestLevel').value = '';
+            document.getElementById('responseStatus').value = '';
+            document.getElementById('lastContactDate').value = '';
+            document.getElementById('nextFollowupDate').value = '';
+            document.getElementById('contactCount').value = '0';
             document.getElementById('coachNotes').value = '';
             
             updateCoachList();
@@ -543,7 +592,32 @@ Best regards,
                 
                 if (coach.interestLevel) {
                     const badgeClass = 'badge-' + coach.interestLevel.toLowerCase();
-                    badges = '<span class="badge ' + badgeClass + '">' + coach.interestLevel + '</span>';
+                    badges += '<span class="badge ' + badgeClass + '">' + coach.interestLevel + '</span>';
+                }
+                
+                // Add response status badge
+                if (coach.responseStatus) {
+                    let statusColor = '#6c757d';
+                    if (coach.responseStatus === 'Responded' || coach.responseStatus === 'Meeting Scheduled' || coach.responseStatus === 'Offer Received') {
+                        statusColor = '#28a745';
+                    } else if (coach.responseStatus === 'Follow-up Needed') {
+                        statusColor = '#ffc107';
+                    } else if (coach.responseStatus === 'Email Sent') {
+                        statusColor = '#17a2b8';
+                    } else if (coach.responseStatus === 'No Interest') {
+                        statusColor = '#dc3545';
+                    }
+                    badges += '<span class="badge" style="background: ' + statusColor + ';">' + coach.responseStatus + '</span>';
+                }
+                
+                // Check if follow-up is overdue
+                let followupAlert = '';
+                if (coach.nextFollowupDate) {
+                    const today = new Date();
+                    const followupDate = new Date(coach.nextFollowupDate);
+                    if (followupDate <= today) {
+                        followupAlert = '<p style="color: #dc3545; font-weight: bold;">🔔 Follow-up overdue!</p>';
+                    }
                 }
                 
                 html += '<div class="coach-item">' +
@@ -552,7 +626,11 @@ Best regards,
                     '<p><strong>' + coach.school + '</strong> ' + (coach.division ? '(' + coach.division + ')' : '') + '</p>' +
                     '<p>Email: ' + coach.email + '</p>' +
                     '<div style="margin: 5px 0;">' + badges + '</div>' +
-                    (coach.notes ? '<p><em>' + coach.notes + '</em></p>' : '') +
+                    (coach.lastContactDate ? '<p><em>Last contacted: ' + coach.lastContactDate + '</em></p>' : '') +
+                    (coach.nextFollowupDate ? '<p><em>Next follow-up: ' + coach.nextFollowupDate + '</em></p>' : '') +
+                    (coach.contactCount ? '<p><em>Times contacted: ' + coach.contactCount + '</em></p>' : '') +
+                    followupAlert +
+                    (coach.notes ? '<p><em>Notes: ' + coach.notes + '</em></p>' : '') +
                     '</div>' +
                     '<button class="btn btn-danger" onclick="removeCoach(' + coach.id + ')">Remove</button>' +
                     '</div>';
@@ -564,14 +642,35 @@ Best regards,
         // Update statistics
         function updateStats() {
             const total = coaches.length;
-            const dream = coaches.filter(function(c) { return c.interestLevel === 'Dream'; }).length;
-            const target = coaches.filter(function(c) { return c.interestLevel === 'Target'; }).length;
-            const safety = coaches.filter(function(c) { return c.interestLevel === 'Safety'; }).length;
+            const emailsSent = coaches.filter(function(c) { 
+                return c.responseStatus && c.responseStatus !== 'Not Contacted'; 
+            }).length;
+            const responsesReceived = coaches.filter(function(c) { 
+                return c.responseStatus === 'Responded' || c.responseStatus === 'Meeting Scheduled' || c.responseStatus === 'Offer Received'; 
+            }).length;
+            const responseRate = emailsSent > 0 ? Math.round((responsesReceived / emailsSent) * 100) : 0;
+            const followupsNeeded = coaches.filter(function(c) { 
+                return c.responseStatus === 'Follow-up Needed' || (c.nextFollowupDate && new Date(c.nextFollowupDate) <= new Date()); 
+            }).length;
+            const meetingsScheduled = coaches.filter(function(c) { 
+                return c.responseStatus === 'Meeting Scheduled'; 
+            }).length;
             
             document.getElementById('totalCoaches').textContent = total;
-            document.getElementById('dreamSchools').textContent = dream;
-            document.getElementById('targetSchools').textContent = target;
-            document.getElementById('safetySchools').textContent = safety;
+            document.getElementById('emailsSent').textContent = emailsSent;
+            document.getElementById('responsesReceived').textContent = responsesReceived;
+            document.getElementById('responseRate').textContent = responseRate + '%';
+            document.getElementById('followupsNeeded').textContent = followupsNeeded;
+            document.getElementById('meetingsScheduled').textContent = meetingsScheduled;
+            
+            // Show follow-up alert if needed
+            const alert = document.getElementById('followupAlert');
+            if (followupsNeeded > 0) {
+                alert.style.display = 'block';
+                document.getElementById('overdueCount').textContent = followupsNeeded;
+            } else {
+                alert.style.display = 'none';
+            }
         }
         
         // Email templates
